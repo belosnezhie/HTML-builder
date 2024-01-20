@@ -53,7 +53,34 @@ function copyAssets() {
   return copyDirectory(assetsPath, newAssetsPath);
 }
 
+function copyStyles() {
+  fs.readdir(stylesPath, { withFileTypes: true }, (err, dirents) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const filteredDirents = dirents.filter((dirent) => dirent.isFile());
+      const writableStream = fs.createWriteStream(newStylePath, 'utf-8');
+      filteredDirents.forEach((dirent) => {
+        const extension = path.extname(path.join(dirent.path, dirent.name));
+        if (extension === '.css') {
+          const redableStream = fs.createReadStream(
+            path.join(dirent.path, dirent.name),
+            'utf-8',
+          );
+          redableStream.on('readable', () => {
+            let chunk;
+            while (null !== (chunk = redableStream.read())) {
+              writableStream.write(chunk);
+            }
+            writableStream.write('\n');
+          });
+        }
+      });
+    }
+  });
+}
+
 copyAssets();
-// copyStyles();
+copyStyles();
 // copyTemplate();
 // tranformTemplate();
