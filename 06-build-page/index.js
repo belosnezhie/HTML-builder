@@ -12,7 +12,7 @@ const newStylePath = path.join(__dirname, 'project-dist', 'style.css');
 const assetsPath = path.join(__dirname, 'assets');
 const newAssetsPath = path.join(__dirname, 'project-dist', 'assets');
 // Templates
-const templPath = path.join(__dirname, 'project-dist', 'template.html');
+const templPath = path.join(__dirname, 'template.html');
 
 // const writableStreamHTML = fs.createWriteStream(distPath, 'utf-8');
 
@@ -80,7 +80,11 @@ function copyStyles() {
   });
 }
 
+function createHTML() {
+  return fs.copyFile(templPath, pagePath, () => {});
+}
+
 copyAssets();
 copyStyles();
-// copyTemplate();
+createHTML();
 // tranformTemplate();
