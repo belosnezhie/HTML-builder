@@ -361,7 +361,6 @@ main .container {
   outline: 0;
 }
 
-
 footer {
   background-color: #181617;
 }
@@ -422,6 +421,7 @@ footer .container {
   background-image: url('assets/svg/telegram.svg');
   background-size: 26px;
 }
+
 
 
 

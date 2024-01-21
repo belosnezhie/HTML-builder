@@ -16,9 +16,20 @@ const templPath = path.join(__dirname, 'template.html');
 // Components
 const compPath = path.join(__dirname, 'components');
 
-// const writableStreamHTML = fs.createWriteStream(distPath, 'utf-8');
+function createProgectDist(callback) {
+  fs.rm(distPath, { recursive: true }, () => {
+    fs.mkdir(distPath, { recursive: true }, (err) => {
+      if (err) {
+        return console.error(err);
+      }
+      if (callback !== undefined) {
+        callback();
+      }
+    });
+  });
+}
 
-function copyDirectory(oldPath, newPath) {
+function copyDirectory(oldPath, newPath, callback) {
   fs.rm(newPath, { recursive: true }, () => {
     fs.mkdir(newPath, { recursive: true }, (err) => {
       if (err) {
@@ -33,6 +44,7 @@ function copyDirectory(oldPath, newPath) {
               return copyDirectory(
                 path.join(entry.path, entry.name),
                 path.join(newPath, entry.name),
+                callback,
               );
             }
             fs.copyFile(
@@ -41,6 +53,9 @@ function copyDirectory(oldPath, newPath) {
               (err) => {
                 if (err) {
                   console.error(err);
+                }
+                if (callback !== undefined) {
+                  callback();
                 }
               },
             );
@@ -51,11 +66,11 @@ function copyDirectory(oldPath, newPath) {
   });
 }
 
-function copyAssets() {
-  return copyDirectory(assetsPath, newAssetsPath);
+function copyAssets(callback) {
+  return copyDirectory(assetsPath, newAssetsPath, callback);
 }
 
-function copyStyles() {
+function copyStyles(callback) {
   fs.readdir(stylesPath, { withFileTypes: true }, (err, dirents) => {
     if (err) {
       console.log(err);
@@ -78,20 +93,26 @@ function copyStyles() {
           });
         }
       });
+      if (callback !== undefined) {
+        callback();
+      }
     }
   });
 }
 
-function createHTML() {
+function createHTML(callback) {
   makeStringfromFile(path.join(compPath, 'footer.html'), (footer) => {
     makeStringfromFile(path.join(compPath, 'articles.html'), (articles) => {
       makeStringfromFile(path.join(compPath, 'header.html'), (header) => {
         makeStringfromFile(templPath, (page) => {
-          let result = page.replace('{{articles}}', articles);
-          result = result.replace('{{header}}', header);
-          result = result.replace('{{footer}}', footer);
+          let result = page.replaceAll('{{articles}}', articles);
+          result = result.replaceAll('{{header}}', header);
+          result = result.replaceAll('{{footer}}', footer);
           const writableStream = fs.createWriteStream(pagePath, 'utf-8');
-          return writableStream.write(result);
+          writableStream.write(result);
+          if (callback !== undefined) {
+            callback();
+          }
         });
       });
     });
@@ -111,7 +132,15 @@ function makeStringfromFile(path, callback) {
   });
 }
 
-// copyAssets();
-// copyStyles();
-createHTML();
-// tranformTemplate();
+new Promise(function (resolve) {
+  createProgectDist(() => resolve(1));
+})
+  .then(function () {
+    createHTML();
+  })
+  .then(function () {
+    copyStyles();
+  })
+  .then(function () {
+    copyAssets();
+  });
