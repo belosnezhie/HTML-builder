@@ -13,6 +13,8 @@ const assetsPath = path.join(__dirname, 'assets');
 const newAssetsPath = path.join(__dirname, 'project-dist', 'assets');
 // Templates
 const templPath = path.join(__dirname, 'template.html');
+// Components
+const compPath = path.join(__dirname, 'components');
 
 // const writableStreamHTML = fs.createWriteStream(distPath, 'utf-8');
 
@@ -81,10 +83,35 @@ function copyStyles() {
 }
 
 function createHTML() {
-  return fs.copyFile(templPath, pagePath, () => {});
+  makeStringfromFile(path.join(compPath, 'footer.html'), (footer) => {
+    makeStringfromFile(path.join(compPath, 'articles.html'), (articles) => {
+      makeStringfromFile(path.join(compPath, 'header.html'), (header) => {
+        makeStringfromFile(templPath, (page) => {
+          let result = page.replace('{{articles}}', articles);
+          result = result.replace('{{header}}', header);
+          result = result.replace('{{footer}}', footer);
+          const writableStream = fs.createWriteStream(pagePath, 'utf-8');
+          return writableStream.write(result);
+        });
+      });
+    });
+  });
 }
 
-copyAssets();
-copyStyles();
+function makeStringfromFile(path, callback) {
+  const redableStream = fs.createReadStream(path, 'utf-8');
+  let result = '';
+
+  redableStream.on('readable', () => {
+    let chunk;
+    while (null !== (chunk = redableStream.read())) {
+      result += chunk;
+    }
+    callback(result);
+  });
+}
+
+// copyAssets();
+// copyStyles();
 createHTML();
 // tranformTemplate();
