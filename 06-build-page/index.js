@@ -101,19 +101,25 @@ function copyStyles(callback) {
 }
 
 function createHTML(callback) {
-  makeStringfromFile(path.join(compPath, 'footer.html'), (footer) => {
-    makeStringfromFile(path.join(compPath, 'articles.html'), (articles) => {
-      makeStringfromFile(path.join(compPath, 'header.html'), (header) => {
-        makeStringfromFile(templPath, (page) => {
-          let result = page.replaceAll('{{articles}}', articles);
-          result = result.replaceAll('{{header}}', header);
-          result = result.replaceAll('{{footer}}', footer);
-          const writableStream = fs.createWriteStream(pagePath, 'utf-8');
-          writableStream.write(result);
-          if (callback !== undefined) {
-            callback();
-          }
-        });
+  makeStringfromFile(templPath, (page) => {
+    fs.readdir(compPath, { withFileTypes: true }, (err, dirents) => {
+      let itemsProcessed = 0;
+      dirents.forEach((file) => {
+        makeStringfromFile(
+          path.join(file.path, file.name),
+          (componentInStr) => {
+            const name = file.name.split('.')[0];
+            page = page.replaceAll(`{{${name}}}`, componentInStr);
+            itemsProcessed++;
+            if (itemsProcessed === dirents.length) {
+              const writableStream = fs.createWriteStream(pagePath, 'utf-8');
+              writableStream.write(page);
+              if (callback !== undefined) {
+                callback();
+              }
+            }
+          },
+        );
       });
     });
   });
