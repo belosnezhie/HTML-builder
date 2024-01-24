@@ -9,7 +9,7 @@ const writableStream = fs.createWriteStream(filePath, 'utf-8');
 stdout.write('Hellow! Please put smth to the console.\n');
 
 stdin.on('data', (data) => {
-  if (data.toString() === 'exit\n') {
+  if (data.toString().trim() === 'exit') {
     process.exit();
   }
   writableStream.write(data);
@@ -21,5 +21,6 @@ process.on('exit', () => {
 
 process.on('SIGINT', () => {
   stdout.write('\n');
+  writableStream.end();
   process.exit();
 });
